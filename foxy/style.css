@@ -1,0 +1,225 @@
+@font-face {
+    font-family: 'Lato Regular';
+    src: url(fonts/Lato-Hairline.ttf);
+}
+
+body {
+    font-family: 'Lato Regular';
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.container {
+    display: block;
+    position: absolute;
+    width: 350px;
+    height: 350px;
+    margin: auto;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.window {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    margin: 0 auto;
+    border-radius: 50%;
+    border: 8px solid white;
+    background-color: #f0efef;
+    overflow: hidden;
+    -webkit-transition: all 0.8s linear;
+    transition: all 0.8s linear;
+}
+
+.sun {
+    display: inline-block;
+    position: relative;
+    top: 40px;
+    height: 60px;
+    width: 60px;
+    background: #ffd42a;
+    border-radius: 50%;
+    margin: 0 auto;
+    left: 180px;
+    -webkit-transition: all 0.8s linear;
+    transition: all 0.8s linear;
+}
+
+.moon {
+    position: relative;
+    height: 30px;
+    width: 30px;
+    background: #fff;
+    border-radius: 50%;
+    display: none;
+}
+
+.the-fox {
+    display: block;
+    position: absolute;
+    bottom: 0px;
+    left: 15px;
+    height: 140px;
+    margin: 0 40px;
+    background: rgb(235, 66, 20);
+    -webkit-transition: bottom 0.5s;
+    transition: bottom 0.5s;
+}
+
+.the-fox:before {
+    width: 0;
+    height: 0;
+    border-right: 70px solid transparent;
+    border-bottom: 50px solid rgb(235, 66, 20);
+    top: -40px;
+    left: 0;
+    position: absolute;
+    content: "";
+    -webkit-transition: bottom 0.5s;
+    transition: bottom 0.5s;
+}
+
+.the-fox:after {
+    width: 0;
+    height: 0;
+    border-right: 0px solid transparent;
+    border-left: 70px solid transparent;
+    border-bottom: 50px solid rgb(235, 66, 20);
+    top: -40px;
+    right: 0;
+    position: absolute;
+    content: "";
+    -webkit-transition: bottom 0.5s;
+    transition: bottom 0.5s;
+}
+
+.window:hover .the-fox {
+    bottom: -110px;
+}
+
+.the-fox .eyes {
+    display: block;
+    position: absolute;
+    background: #FFFFFF;
+    height: 15px;
+    width: 15px;
+    border-radius: 50%;
+    bottom: 90px;
+}
+
+.the-fox .eyes.left {
+    left: 30px;
+}
+
+.the-fox .eyes.right {
+    right: 30px;
+}
+
+.the-fox .nose {
+    display: block;
+    position: relative;
+    background: #333;
+    height: 10px;
+    width: 10px;
+    border-radius: 50%;
+    margin: 0 auto;
+    top: 45px;
+}
+
+.the-fox .white-part {
+    display: block;
+    position: relative;
+    width: 0px;
+    height: 0px;
+    top: 65px;
+    border-style: solid;
+    border-width: 80px 70px 0px 60px;
+    border-color: #ffffff transparent transparent transparent;
+}
+
+input[type=checkbox] {
+    position: absolute;
+    visibility: hidden;
+}
+
+label {
+    position: absolute;
+    height: 80px;
+    width: 100px;
+    display: block;
+    top: 0px;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    z-index: 9999;
+    cursor: pointer;
+    margin: 0 auto;
+}
+
+.switch {
+    display: block;
+    position: relative;
+    height: 50px;
+    width: 125px;
+    margin: 0px auto 30px auto;
+    background-color: #f0efef;
+    border-radius: 20%;
+}
+
+.switch .button {
+    position: absolute;
+    border-radius: 100%;
+    background: #ffd42a;
+    height: 32px;
+    width: 32px;
+    top: 9px;
+    left: 7px;
+}
+
+.switch .button {
+    -webkit-transition: all 0.5s cubic-bezier(0, 0, 0, 1.07);
+    transition: all 0.5s linear;
+}
+
+input[type=checkbox]:checked ~ .switch .button {
+    position: absolute;
+    left: 85px;
+}
+
+input[type=checkbox]:checked ~ .window {
+    background: #222222;
+}
+
+input[type=checkbox]:checked ~ .window .sun {
+    background-color: white;
+    left: 50px;
+    top: 40px;
+    width: 45px;
+    height: 45px;
+}
+
+input[type=checkbox]:checked ~ .window .the-fox {
+    background: #C74628;
+    bottom: -120px;
+}
+
+input[type=checkbox]:checked ~ .window .the-fox:after {
+    border-bottom-color: #C74628;
+}
+
+input[type=checkbox]:checked ~ .window .the-fox:before {
+    border-bottom-color: #C74628;
+}
+
+.sun-switcher {
+    position: absolute;
+    top: -35px;
+    left: 6px;
+}
+.about {
+    text-align: center;
+    padding: 20px;
+}
