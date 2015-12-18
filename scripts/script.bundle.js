@@ -47,8 +47,8 @@ var main =
 
 	var Swipe = __webpack_require__(1),
 	    ResizeCalculator = __webpack_require__(2),
-	    Video = __webpack_require__(4),
-	    Layout = __webpack_require__(5);
+	    Video = __webpack_require__(5),
+	    Layout = __webpack_require__(6);
 	
 	var swipe = new Swipe(),
 	    resizer = new ResizeCalculator(),
@@ -86,10 +86,8 @@ var main =
 	        for (var i = 0; i < pages.length; i++) {
 	            if (i == number) {
 	                pages[i].style.background = active;
-	                pages[i].style.border = '2px solid white';
 	            } else {
 	                pages[i].style.background = 'white';
-	                pages[i].style.border = 'none';
 	            }
 	
 	        }
@@ -173,7 +171,8 @@ var main =
 	                }
 	            });
 	            window.addEventListener('resize', function () {
-	                var pages = document.querySelectorAll('.page');
+	                var pages = document.querySelectorAll('.page'),
+	                    videos = document.querySelector('.videos');
 	                trans = document.body.clientWidth * pageNumber;
 	                videos.style.transition = "transform 0.0s";
 	                videos.style.transform = "translate3D(-" + trans + "px, 0px, 0px)";
@@ -191,7 +190,8 @@ var main =
 /* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Page = __webpack_require__(3);
+	var Page = __webpack_require__(3),
+	    pagesController = __webpack_require__(4);
 	
 	function isInteger(num) {
 	    return (num ^ 0) === num;
@@ -209,25 +209,6 @@ var main =
 	        } else {
 	            return parseInt(number.toFixed(0));
 	        }
-	    }
-	
-	    function pagesControler(template) {
-	        var pages = document.querySelectorAll('.page'),
-	            footer = document.querySelector('.footer'),
-	            page;
-	        if (pages.length < pCounter) {
-	            while (pages.length < pCounter) {
-	                $('.footer').append(template(pages.length));
-	                pages = document.querySelectorAll('.page');
-	            }
-	        } else if (pages.length > pCounter) {
-	            while (pages.length > pCounter) {
-	                page = document.querySelector('.page[data-number="' + (pages.length - 1) + '"]');
-	                footer.removeChild(page);
-	                pages = document.querySelectorAll('.page');
-	            }
-	        }
-	
 	    }
 	
 	    function calculate() {
@@ -256,8 +237,7 @@ var main =
 	            pCounter = pagesCalculate(4, length);
 	
 	        }
-	
-	        pagesControler(page.pageTemplate);
+	        pagesController(page.pageTemplate, pCounter);
 	    }
 	
 	
@@ -277,7 +257,7 @@ var main =
 	module.exports = function Page() {
 	
 	    function createPage(number) {
-	        var template = '<a href="#" class="page" data-number="' + number + '"></a>';
+	        var template = '<a href="#" class="page" data-number="' + number + '">' + (number + 1) + '</a>';
 	        return template;
 	    }
 	
@@ -288,6 +268,29 @@ var main =
 
 /***/ },
 /* 4 */
+/***/ function(module, exports) {
+
+	    module.exports = function pagesControler(template, pCounter) {
+	        var pages = document.querySelectorAll('.page'),
+	            footer = document.querySelector('.footer'),
+	            page;
+	        if (pages.length < pCounter) {
+	            while (pages.length < pCounter) {
+	                $('.footer').append(template(pages.length));
+	                pages = document.querySelectorAll('.page');
+	            }
+	        } else if (pages.length > pCounter) {
+	            while (pages.length > pCounter) {
+	                page = document.querySelector('.page[data-number="' + (pages.length - 1) + '"]');
+	                footer.removeChild(page);
+	                pages = document.querySelectorAll('.page');
+	            }
+	        }
+	
+	    }
+
+/***/ },
+/* 5 */
 /***/ function(module, exports) {
 
 	module.exports = function Video() {
@@ -311,7 +314,7 @@ var main =
 	}
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports) {
 
 	module.exports = function Layout() {

@@ -8,10 +8,8 @@ module.exports = function Swipe() {
         for (var i = 0; i < pages.length; i++) {
             if (i == number) {
                 pages[i].style.background = active;
-                pages[i].style.border = '2px solid white';
             } else {
                 pages[i].style.background = 'white';
-                pages[i].style.border = 'none';
             }
 
         }
@@ -95,7 +93,8 @@ module.exports = function Swipe() {
                 }
             });
             window.addEventListener('resize', function () {
-                var pages = document.querySelectorAll('.page');
+                var pages = document.querySelectorAll('.page'),
+                    videos = document.querySelector('.videos');
                 trans = document.body.clientWidth * pageNumber;
                 videos.style.transition = "transform 0.0s";
                 videos.style.transform = "translate3D(-" + trans + "px, 0px, 0px)";

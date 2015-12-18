@@ -1,4 +1,5 @@
-var Page = require('./Page');
+var Page = require('./Page'),
+    pagesController = require('./PageController');
 
 function isInteger(num) {
     return (num ^ 0) === num;
@@ -16,25 +17,6 @@ module.exports = function ResizeCalculator() {
         } else {
             return parseInt(number.toFixed(0));
         }
-    }
-
-    function pagesControler(template) {
-        var pages = document.querySelectorAll('.page'),
-            footer = document.querySelector('.footer'),
-            page;
-        if (pages.length < pCounter) {
-            while (pages.length < pCounter) {
-                $('.footer').append(template(pages.length));
-                pages = document.querySelectorAll('.page');
-            }
-        } else if (pages.length > pCounter) {
-            while (pages.length > pCounter) {
-                page = document.querySelector('.page[data-number="' + (pages.length - 1) + '"]');
-                footer.removeChild(page);
-                pages = document.querySelectorAll('.page');
-            }
-        }
-
     }
 
     function calculate() {
@@ -63,8 +45,7 @@ module.exports = function ResizeCalculator() {
             pCounter = pagesCalculate(4, length);
 
         }
-
-        pagesControler(page.pageTemplate);
+        pagesController(page.pageTemplate, pCounter);
     }
 
 
