@@ -1,0 +1,182 @@
+@import 'reset.styl'
+
+$d_blue = #343d46
+$red = #cb3131
+$l_green = rgba(6, 101, 66, 0.95)
+
+
+@font-face {
+    font-family Lato
+    src url(http://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext)
+}
+
+html {
+    height 100%
+}
+
+body {
+    font-family Lato
+    font-size 16px
+    background-color $d_blue
+    height 100%
+    overflow hidden
+}
+
+.header {
+    display flex
+    padding 15px
+    
+    &-search {
+        display flex
+        position relative
+        margin auto
+    }
+}
+
+.search-icon {
+    height 35px
+    width 35px
+    position absolute
+    top 6px
+    left 6px
+}
+
+.search {
+    font-family Lato
+    font-size 18px
+    width  57vw
+    height 50px
+    padding 0 10px 0 50px
+    font-weight bold
+    color $d_blue
+    border-radius 5px
+    border none
+    outline none
+}
+
+.main {
+    position relative
+    overflow hidden
+    min-width 100%
+    width auto
+    height calc(100% - 130px)
+}
+
+.videos {
+    top 5%
+    position absolute
+    display flex
+    list-style-type none
+    min-width 100%
+    width auto
+    flex-direction row
+    justify-content space-around
+    text-align center
+    user-select none
+}
+
+
+.video {
+    min-width 300px
+    max-width 20vw
+    height 69vh
+    background-color white
+    border-radius 5px
+    
+    &-preview {
+        padding 10px 0 10px 0
+        
+        img {
+            min-width 300px
+            max-width 20vw
+        }
+       
+    }
+    
+    &-statistic-list {
+        list-style none
+        padding 5px 35px 0 35px
+        font-weight bold
+    }
+    
+    &-statistic-list li {
+        padding 5px
+    }
+    
+    .name {
+        display block
+        font-weight 600
+        position absolute
+        max-width calc(20vw - 20px)
+        min-width 280px
+        padding 10px
+        margin 10px 0 10px 0
+        font-size 20px
+        background-color $l_green
+        color white
+        top 20%
+    }
+    
+    &-description {
+        padding 10px
+        padding-top 0
+        font-style italic
+        text-align left
+        margin-bottom 15px
+    }
+    
+}
+
+.mobile-video-statistic-list {
+    display none
+}
+
+.mobile-video-statistic-list li {
+    display inline-block
+    padding 10px
+    font-style italic
+}
+
+.person-icon {
+    padding 12px 5px 5px 35px;
+    background-image url(person.png)
+    background-repeat no-repeat
+    height 25px
+}
+
+.date {
+    padding 8px 5px 5px 40px
+    background-image url(calendar.png)
+    background-repeat no-repeat
+    height 25px
+}
+.views {
+    padding 2px 5px 5px 45px
+    background-image url(views.png)
+    background-repeat no-repeat
+    height 25px
+}
+
+.footer {
+    display flex
+    flex-flow row wrap
+    justify-content center
+}
+
+.page {
+    margin  5px
+    width 15px
+    height 15px
+    background-color white
+    border-radius 10px
+    transition background 0.5s
+}
+
+@media (max-height: 640px) {
+    .video-statistic-list {
+        display none
+    }
+    .mobile-video-statistic-list {
+        display block
+    }
+}
