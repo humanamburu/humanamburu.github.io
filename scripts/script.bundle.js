@@ -47,30 +47,24 @@ var main =
 
 	var Swipe = __webpack_require__(1),
 	    ResizeCalculator = __webpack_require__(2),
-	    Video = __webpack_require__(5),
-	    Layout = __webpack_require__(6);
+	    Layout = __webpack_require__(7),
+	    Search = __webpack_require__(8),
+	    $ = __webpack_require__(5),
+	    load = __webpack_require__(9);
+	
+	
+	$('body').append(Layout());
 	
 	var swipe = new Swipe(),
-	    resizer = new ResizeCalculator(),
-	    video = new Video(),
-	    layout = new Layout();
+	    resizer = new ResizeCalculator();
 	
-	$('body').append(layout.createTemplate());
-	
-	for (var i = 0; i < 11; i++) {
-	    var href = 'http://vk.com/humanamburu',
-	        hrefTag = i + 'Крутой ролик на 5 миллиардов просомтров почти гангнамстайл',
-	        imgSrc = 'styles/test.png',
-	        person = 'Fdasd sadasdsa',
-	        date = '20.20.2015',
-	        views = 200255522,
-	        text = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Eum consequatur vero iste, iusto fugit sapiente itaque molestias eos. Eius molestias consectetur assumenda, quibusdam, necessitatibus quisquam neque sunt. Veniam, pariatur, esse?';
-	
-	    $('.videos').append(video.createTemplate(href, hrefTag, imgSrc, person, date, views, text));
-	}
-	
-	resizer.set();
 	swipe.set();
+	resizer.set();
+	
+	var search = new Search();
+	search.init(function (event, value) {
+	    load(value);
+	});
 
 /***/ },
 /* 1 */
@@ -212,6 +206,7 @@ var main =
 	    }
 	
 	    function calculate() {
+	        debugger;
 	        var video = document.querySelectorAll('.video'),
 	            length = video.length,
 	            videos = document.querySelector('.videos'),
@@ -244,9 +239,9 @@ var main =
 	
 	    return {
 	        set: function () {
-	            calculate();
 	            window.addEventListener('resize', calculate);
-	        }
+	        },
+	        calculate: calculate
 	    };
 	}
 
@@ -268,66 +263,184 @@ var main =
 
 /***/ },
 /* 4 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	    module.exports = function pagesControler(template, pCounter) {
-	        var pages = document.querySelectorAll('.page'),
-	            footer = document.querySelector('.footer'),
-	            page;
-	        if (pages.length < pCounter) {
-	            while (pages.length < pCounter) {
-	                $('.footer').append(template(pages.length));
-	                pages = document.querySelectorAll('.page');
-	            }
-	        } else if (pages.length > pCounter) {
-	            while (pages.length > pCounter) {
-	                page = document.querySelector('.page[data-number="' + (pages.length - 1) + '"]');
-	                footer.removeChild(page);
-	                pages = document.querySelectorAll('.page');
-	            }
-	        }
+	     var $ = __webpack_require__(5);
+	     module.exports = function pagesControler(template, pCounter) {
+	         var pages = document.querySelectorAll('.page'),
+	             footer = document.querySelector('.footer'),
+	             page;
+	         if (pages.length < pCounter) {
+	             while (pages.length < pCounter) {
+	                 $('.footer').append(template(pages.length));
+	                 pages = document.querySelectorAll('.page');
+	             }
+	         } else if (pages.length > pCounter) {
+	             while (pages.length > pCounter) {
+	                 page = document.querySelector('.page[data-number="' + (pages.length - 1) + '"]');
+	                 footer.removeChild(page);
+	                 pages = document.querySelectorAll('.page');
+	             }
+	         }
 	
-	    }
+	     }
 
 /***/ },
 /* 5 */
 /***/ function(module, exports) {
 
-	module.exports = function Video() {
-	
-	    function createVideoTemplate(href, hrefTag, imgSrc, person, date, views, text) {
-	        var startTag = '<li class="video">',
-	            link = '<a href="' + href + '" class="name">' + hrefTag + '</a>',
-	            preview = '<div class="video-preview"><img src="' + imgSrc + '" alt="videoPreview" ondrag="return false" ondragdrop="return false" ondragstart="return false"></div>',
-	            videoStatistic = '<div class="video-statistic"><ul class="video-statistic-list"><li><div class="person-icon">' + person + '</div></li><li><div class="date"> ' + date + '</div></li><li><div class="views">' + views + '</div></li></ul></div>',
-	            mobileVideoStatistic = '<div class="mobile-video-statistic"><ul class="mobile-video-statistic-list"><li>' + person + '</li><li>' + date + '</li><li>' + views + '</li></ul></div>',
-	            description = '<div class="video-description">' + text + '</div>',
-	            endTag = '</li>';
-	
-	        return startTag + link + preview + videoStatistic + mobileVideoStatistic + description + endTag;
+	function JQ(selector) {
+	    this.selector = selector;
+	    if (this instanceof JQ) {
+	        return this.set(selector);
+	    } else {
+	        return new JQ(selector);
 	    }
+	};
 	
-	    return {
-	        createTemplate: createVideoTemplate
-	    };
+	JQ.prototype.elements = [];
+	JQ.prototype.selector;
 	
-	}
+	JQ.prototype.set = function (selector) {
+	    if (typeof selector === 'string') {
+	        this.elements = document.querySelectorAll(selector);
+	    } else if (selector instanceof JQ) {
+	        this.elements = this.elements.concat(selector.elements);
+	    }
+	    return this;
+	};
+	
+	JQ.prototype.append = function (content) {
+	    if (content instanceof JQ) {
+	        [].forEach.call(this.elements, function (argument) {
+	            for (var i = 0; i < content.elements.length; i++) {
+	                argument.appendChild(content.elements[i]);
+	            }
+	        });
+	    }
+	    if (content instanceof Node) {
+	        [].forEach.call(this.elements, function (argument) {
+	            argument.appendChild(content.cloneNode(true));
+	        });
+	    }
+	    if (typeof (content) === "function") {
+	        for (var i = 0; i < this.elements.length; i++) {
+	            JQ(this.selector).elements[i].innerHTML += content(i);
+	        };
+	    }
+	    if (typeof content === 'string') {
+	        for (var i = 0; i < this.elements.length; i++) {
+	            JQ(this.selector).elements[i].innerHTML += content;
+	        };
+	    }
+	    return this;
+	};
+	
+	module.exports = JQ;
 
 /***/ },
 /* 6 */
 /***/ function(module, exports) {
 
+	module.exports = function Video(obj) {
+	    var startTag = '<li class="video">',
+	        link = '<a href="' + obj.href + '" class="name">' + obj.hrefTag + '</a>',
+	        preview = '<div class="video-preview"><img src="' + obj.imgSrc + '" alt="videoPreview" ondrag="return false" ondragdrop="return false" ondragstart="return false"></div>',
+	        videoStatistic = '<div class="video-statistic"><ul class="video-statistic-list"><li><div class="person-icon">' + obj.person + '</div></li><li><div class="date"> ' + obj.date + '</div></li><li><div class="views">' + obj.views + '</div></li></ul></div>',
+	        mobileVideoStatistic = '<div class="mobile-video-statistic"><ul class="mobile-video-statistic-list"><li>' + obj.person + '</li><li>' + obj.date + '</li><li>' + obj.views + '</li></ul></div>',
+	        description = '<div class="video-description">' + obj.text + '</div>',
+	        endTag = '</li>';
+	
+	    return startTag + link + preview + videoStatistic + mobileVideoStatistic + description + endTag;
+	
+	}
+
+/***/ },
+/* 7 */
+/***/ function(module, exports) {
+
 	module.exports = function Layout() {
-	    function createLayoutTemplate() {
-	        var header = '<header class="header"><div class="header-search"><img class="search-icon" src="styles/search.png" alt="search"><input class="search" type="search"></div></header>',
-	            main = '<main class="main"><ul class="videos"></ul></main>',
-	            footer = '<footer class="footer"></footer>';
-	        return header + main + footer;
+	    var header = '<header class="header"><div class="header-search"><img class="search-icon" src="styles/search.png" alt="search"><input class="search" type="search"></div></header>',
+	        main = '<main class="main"><ul class="videos"></ul></main>',
+	        footer = '<footer class="footer"></footer>';
+	    return header + main + footer;
+	}
+
+/***/ },
+/* 8 */
+/***/ function(module, exports) {
+
+	module.exports = function Search() {
+	    var search = document.querySelector('.search');
+	
+	    function init(callback) {
+	        search.addEventListener('keyup',
+	            function (event) {
+	                if (event.keyCode === 13) {
+	                    callback.call(this, event, search.value);
+	                }
+	            });
 	    }
 	
 	    return {
-	        createTemplate: createLayoutTemplate
+	        init: init
 	    };
+	}
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var $ = __webpack_require__(5),
+	    Video = __webpack_require__(6),
+	    ResizeCalculator = __webpack_require__(2);
+	
+	module.exports = function load(query) {
+	    var XHR = XMLHttpRequest;
+	    var xhr = new XHR(),
+	        mainURL = 'https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=' + query + '&key=AIzaSyAIQ2HLw1YvSQL7Equ4WPJpJskfbaEN_dg',
+	        videos,
+	        calculator = new ResizeCalculator();
+	
+	    xhr.open('GET', mainURL, true);
+	    xhr.send();
+	
+	    xhr.onload = function () {
+	        var statURL;
+	        videos = JSON.parse(this.responseText)['items'];
+	        for (var i = 0; i < 15; i++) {
+	            statURL = 'https://www.googleapis.com/youtube/v3/videos?part=statistics&id=' + videos[i].id.videoId + '&key=AIzaSyAIQ2HLw1YvSQL7Equ4WPJpJskfbaEN_dg';
+	
+	            var video = {
+	                href: 'https://www.youtube.com/watch?v=' + videos[i].id.videoId,
+	                hrefTag: videos[i].snippet.title,
+	                imgSrc: videos[i].snippet.thumbnails.medium.url,
+	                person: videos[i].snippet.channelTitle,
+	                date: videos[i].snippet.publishedAt.substring(0, 10),
+	                views: 0,
+	                text: videos[i].snippet.description
+	            };
+	
+	            var statisticXHR = new XHR();
+	            statisticXHR.open('GET', statURL, true)
+	            statisticXHR.send();
+	
+	            (function (video) {
+	                statisticXHR.onload = function () {
+	                    var statistic = JSON.parse(this.responseText)['items'];
+	                    video.views = statistic[0].statistics.viewCount;
+	                    $('.videos').append(Video(video));
+	                    calculator.calculate();
+	                }
+	            }(video));
+	
+	        }
+	
+	    }
+	    xhr.onerror = function () {
+	        console.log('Status ' + this.status);
+	    }
+	
 	}
 
 /***/ }
