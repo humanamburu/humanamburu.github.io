@@ -45,248 +45,58 @@ var main =
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Swipe = __webpack_require__(1),
-	    ResizeCalculator = __webpack_require__(2),
-	    Layout = __webpack_require__(7),
-	    Search = __webpack_require__(8),
-	    $ = __webpack_require__(5),
-	    load = __webpack_require__(9);
+	var Layout = __webpack_require__(1),
+	    Search = __webpack_require__(2),
+	    $ = __webpack_require__(3),
+	    Loader = __webpack_require__(4),
+	    Swipe = __webpack_require__(9);
 	
+	var loader = new Loader(),
+	    swipe = new Swipe(loader.loadVideos);
 	
 	$('body').append(Layout());
-	
-	var swipe = new Swipe(),
-	    resizer = new ResizeCalculator();
-	
 	swipe.set();
-	resizer.set();
-	
-	var search = new Search();
-	search.init(function (event, value) {
-	    load(value);
-	});
+	var search = new Search(loader.loadVideos);
 
 /***/ },
 /* 1 */
 /***/ function(module, exports) {
 
-	module.exports = function Swipe() {
-	    var active = '#CB3131',
-	        pageNumber = 0;
-	
-	    function activatePadge(number) {
-	        var videos = document.querySelector('.videos'),
-	            pages = document.querySelectorAll('.page');
-	        for (var i = 0; i < pages.length; i++) {
-	            if (i == number) {
-	                pages[i].style.background = active;
-	            } else {
-	                pages[i].style.background = 'white';
-	            }
-	
-	        }
-	    }
-	
-	    function clickHandler(event) {
-	        var videos = document.querySelector('.videos'),
-	            trans = document.body.clientWidth * pageNumber,
-	            shiftX;
-	        if (event.changedTouches === undefined) {
-	            shiftX = event.pageX;
-	        } else {
-	            shiftX = event.changedTouches[0].pageX;
-	        }
-	
-	        videos.style.transition = "transform 0s"
-	
-	        function clickMoveAt(event) {
-	            var pageX;
-	            if (event.changedTouches === undefined) {
-	                pageX = event.pageX;
-	            } else {
-	                pageX = event.changedTouches[0].pageX;
-	            }
-	            videos.style.transform = "translate3D(" + (-trans + pageX - shiftX) + "px, 0px, 0px)";
-	        }
-	
-	        document.addEventListener('mousemove', clickMoveAt);
-	        document.addEventListener('touchmove', clickMoveAt);
-	
-	        function endHandler(event) {
-	            var videos = document.querySelector('.videos'),
-	                pages = document.querySelectorAll('.page'),
-	                pageX;
-	            if (event.changedTouches === undefined) {
-	                pageX = event.pageX;
-	            } else {
-	                pageX = event.changedTouches[0].pageX;
-	            }
-	            document.removeEventListener('mousemove', clickMoveAt);
-	            document.removeEventListener('touchmove', clickMoveAt);
-	            videos.style.transition = "transform 0.5s";
-	            if (pageX < shiftX && pageNumber != (pages.length - 1)) {
-	                pageNumber++;
-	            }
-	            if (pageX > shiftX && pageNumber) {
-	                pageNumber--;
-	            }
-	            activatePadge(pageNumber);
-	            trans = document.body.clientWidth * pageNumber;
-	            videos.style.transform = "translate3D(-" + trans + "px, 0px, 0px)";
-	
-	            document.removeEventListener('mouseup', endHandler);
-	            document.removeEventListener('touchend', endHandler);
-	        }
-	
-	        document.addEventListener('mouseup', endHandler);
-	        document.addEventListener('touchend', endHandler);
-	
-	    }
-	
-	    function swipe(number) {
-	        var videos = document.querySelector('.videos');
-	        pageNumber = number;
-	        activatePadge(number);
-	        videos.style.transition = "transform 0.8s";
-	        trans = document.body.clientWidth * number;
-	        videos.style.transform = "translate3D(-" + trans + "px, 0px, 0px)";
-	    }
-	
-	    return {
-	        set: function () {
-	            var videos = document.querySelector('.videos');
-	            activatePadge(pageNumber);
-	            videos.addEventListener("mousedown", clickHandler, false);
-	            videos.addEventListener("touchstart", clickHandler, false);
-	            document.querySelector('.footer').addEventListener('click', function (event) {
-	                number = event.target.dataset.number;
-	                if (number != undefined) {
-	                    swipe(number)
-	                }
-	            });
-	            window.addEventListener('resize', function () {
-	                var pages = document.querySelectorAll('.page'),
-	                    videos = document.querySelector('.videos');
-	                trans = document.body.clientWidth * pageNumber;
-	                videos.style.transition = "transform 0.0s";
-	                videos.style.transform = "translate3D(-" + trans + "px, 0px, 0px)";
-	                if (pageNumber > pages.length - 1) {
-	                    swipe(pages.length - 1);
-	                }
-	
-	            });
-	
-	        }
-	    };
+	module.exports = function Layout() {
+	    var header = '<header class="header"><div class="header-search"><img class="search-icon" src="styles/search.png" alt="search"><input class="search" type="search"></div></header>',
+	        main = '<main class="main"><ul class="videos"></ul></main>',
+	        footer = '<footer class="footer"></footer>';
+	    return header + main + footer;
 	}
 
 /***/ },
 /* 2 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	var Page = __webpack_require__(3),
-	    pagesController = __webpack_require__(4);
-	
-	function isInteger(num) {
-	    return (num ^ 0) === num;
+	module.exports = function Search(callback) {
+	    var search = document.querySelector('.search');
+	    search.addEventListener('keyup',
+	        function (event) {
+	            if (event.keyCode === 13) {
+	                clearLayout();
+	                callback.call(this, search.value);
+	            }
+	        });
+	    document.querySelector('.search-icon').addEventListener('click', function (event) {
+	        clearLayout();
+	        callback.call(this, event, search.value);
+	    });
 	}
 	
-	
-	module.exports = function ResizeCalculator() {
-	
-	    var pCounter = 0;
-	
-	    function pagesCalculate(pCount, length) {
-	        number = length / pCount;
-	        if (isInteger(number)) {
-	            return number;
-	        } else {
-	            return parseInt(number.toFixed(0));
-	        }
-	    }
-	
-	    function calculate() {
-	        debugger;
-	        var video = document.querySelectorAll('.video'),
-	            length = video.length,
-	            videos = document.querySelector('.videos'),
-	            pages = document.querySelectorAll('.page'),
-	            page = new Page();
-	
-	
-	        if (document.body.clientWidth < 700) {
-	            videos.style.width = 'calc(100vw * ' + length + ')';
-	            pCounter = pagesCalculate(1, length);
-	        } else
-	        if (document.body.clientWidth < 1050) {
-	            videos.style.width = 'calc(50vw *' + length + ')';
-	            pCounter = pagesCalculate(2, length);
-	        } else
-	
-	        if (document.body.clientWidth < 1400) {
-	            videos.style.width = 'calc(33.3vw *' + length + ')';
-	            pCounter = pagesCalculate(3, length);
-	        } else
-	        if (document.body.clientWidth > 1500) {
-	            videos.style.width = 'calc(25vw *' + length + ')';
-	            pCounter = pagesCalculate(4, length);
-	
-	        }
-	        pagesController(page.pageTemplate, pCounter);
-	    }
-	
-	
-	
-	    return {
-	        set: function () {
-	            window.addEventListener('resize', calculate);
-	        },
-	        calculate: calculate
-	    };
+	function clearLayout(argument) {
+	    var main = document.querySelector('.videos'),
+	        footer = document.querySelector('.footer');
+	    main.innerHTML = "";
+	    footer.innerHTML = "";
 	}
 
 /***/ },
 /* 3 */
-/***/ function(module, exports) {
-
-	module.exports = function Page() {
-	
-	    function createPage(number) {
-	        var template = '<a href="#" class="page" data-number="' + number + '">' + (number + 1) + '</a>';
-	        return template;
-	    }
-	
-	    return {
-	        pageTemplate: createPage
-	    };
-	}
-
-/***/ },
-/* 4 */
-/***/ function(module, exports, __webpack_require__) {
-
-	     var $ = __webpack_require__(5);
-	     module.exports = function pagesControler(template, pCounter) {
-	         var pages = document.querySelectorAll('.page'),
-	             footer = document.querySelector('.footer'),
-	             page;
-	         if (pages.length < pCounter) {
-	             while (pages.length < pCounter) {
-	                 $('.footer').append(template(pages.length));
-	                 pages = document.querySelectorAll('.page');
-	             }
-	         } else if (pages.length > pCounter) {
-	             while (pages.length > pCounter) {
-	                 page = document.querySelector('.page[data-number="' + (pages.length - 1) + '"]');
-	                 footer.removeChild(page);
-	                 pages = document.querySelectorAll('.page');
-	             }
-	         }
-	
-	     }
-
-/***/ },
-/* 5 */
 /***/ function(module, exports) {
 
 	function JQ(selector) {
@@ -339,7 +149,72 @@ var main =
 	module.exports = JQ;
 
 /***/ },
-/* 6 */
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var $ = __webpack_require__(3),
+	    Video = __webpack_require__(5),
+	    ResizeCalculator = __webpack_require__(6);
+	
+	module.exports = function Loader() {
+	    var XHR = XMLHttpRequest,
+	        resizer = new ResizeCalculator();
+	
+	    function loadVideos(query) {
+	        var xhr = new XHR(),
+	            mainURL = 'https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=' + query + '&key=AIzaSyAIQ2HLw1YvSQL7Equ4WPJpJskfbaEN_dg',
+	            videos,
+	            calculator = new ResizeCalculator();
+	
+	        xhr.open('GET', mainURL, true);
+	        xhr.send();
+	
+	        xhr.onload = function () {
+	            var statURL;
+	            videos = JSON.parse(this.responseText)['items'];
+	            videos.forEach(function (element, i) {
+	                statURL = 'https://www.googleapis.com/youtube/v3/videos?part=statistics&id=' + element.id.videoId + '&key=AIzaSyAIQ2HLw1YvSQL7Equ4WPJpJskfbaEN_dg';
+	                var video = {
+	                    href: 'https://www.youtube.com/watch?v=' + element.id.videoId,
+	                    hrefTag: element.snippet.title,
+	                    imgSrc: element.snippet.thumbnails.medium.url,
+	                    person: element.snippet.channelTitle,
+	                    date: element.snippet.publishedAt.substring(0, 10),
+	                    views: 0,
+	                    text: element.snippet.description
+	                };
+	
+	                var statisticXHR = new XHR();
+	                statisticXHR.open('GET', statURL, true)
+	                statisticXHR.send();
+	
+	                (function (video, i) {
+	                    statisticXHR.onload = function () {
+	                        var statistic = JSON.parse(this.responseText)['items'];
+	                        video.views = statistic[0].statistics.viewCount;
+	                        $('.videos').append(Video(video));
+	                        calculator.calculate(i);
+	                    }
+	                }(video, i));
+	            });
+	
+	        }
+	
+	        xhr.onerror = function () {
+	            console.log('Status ' + this.status);
+	        }
+	        resizer.set();
+	    }
+	
+	    return {
+	        loadVideos: loadVideos
+	    };
+	
+	
+	}
+
+/***/ },
+/* 5 */
 /***/ function(module, exports) {
 
 	module.exports = function Video(obj) {
@@ -356,91 +231,270 @@ var main =
 	}
 
 /***/ },
-/* 7 */
-/***/ function(module, exports) {
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
 
-	module.exports = function Layout() {
-	    var header = '<header class="header"><div class="header-search"><img class="search-icon" src="styles/search.png" alt="search"><input class="search" type="search"></div></header>',
-	        main = '<main class="main"><ul class="videos"></ul></main>',
-	        footer = '<footer class="footer"></footer>';
-	    return header + main + footer;
-	}
-
-/***/ },
-/* 8 */
-/***/ function(module, exports) {
-
-	module.exports = function Search() {
-	    var search = document.querySelector('.search');
+	var Page = __webpack_require__(7),
+	    pagesController = __webpack_require__(8),
+	    Swipe = __webpack_require__(9);
 	
-	    function init(callback) {
-	        search.addEventListener('keyup',
-	            function (event) {
-	                if (event.keyCode === 13) {
-	                    callback.call(this, event, search.value);
-	                }
-	            });
+	function isInteger(num) {
+	    return (num ^ 0) === num;
+	}
+	
+	
+	module.exports = function ResizeCalculator() {
+	
+	    var pCounter = 0,
+	        swipe = new Swipe();
+	
+	    function pagesCalculate(pCount, length) {
+	        number = length / pCount;
+	        if (isInteger(number)) {
+	            return number;
+	        } else {
+	            return parseInt(number.toFixed(0));
+	        }
 	    }
 	
+	    function calculate(i) {
+	        var video = document.querySelectorAll('.video'),
+	            length = video.length,
+	            videos = document.querySelector('.videos'),
+	            pages = document.querySelectorAll('.page'),
+	            page = new Page();
+	        var active = document.querySelector('.active'),
+	            pageNumber;
+	        if (active === null) {
+	            pageNumber = 0;
+	        } else {
+	            pageNumber = active.dataset.number;
+	        }
+	
+	
+	        if (document.body.clientWidth < 700) {
+	            videos.style.width = 'calc(100vw * ' + length + ')';
+	            pCounter = pagesCalculate(1, length);
+	        } else
+	        if (document.body.clientWidth < 1050) {
+	            videos.style.width = 'calc(50vw *' + length + ')';
+	            pCounter = pagesCalculate(2, length);
+	        } else
+	
+	        if (document.body.clientWidth < 1400) {
+	            videos.style.width = 'calc(33.3vw *' + length + ')';
+	            pCounter = pagesCalculate(3, length);
+	        } else
+	        if (document.body.clientWidth > 1500) {
+	            videos.style.width = 'calc(25vw *' + length + ')';
+	            pCounter = pagesCalculate(4, length);
+	
+	        }
+	        pagesController(page.pageTemplate, pCounter);
+	        if (pages.length === 1) {
+	            pages[0].classList.add('active');
+	            swipe.swipe(0);
+	        }
+	    }
+	
+	
+	
 	    return {
-	        init: init
+	        set: function () {
+	            window.addEventListener('resize', calculate);
+	        },
+	        calculate: calculate
 	    };
 	}
 
 /***/ },
-/* 9 */
+/* 7 */
+/***/ function(module, exports) {
+
+	module.exports = function Page() {
+	
+	    function createPage(number) {
+	        var template = '<a href="#" class="page" data-number="' + number + '">' + (number + 1) + '</a>';
+	        return template;
+	    }
+	
+	    return {
+	        pageTemplate: createPage
+	    };
+	}
+
+/***/ },
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $ = __webpack_require__(5),
-	    Video = __webpack_require__(6),
-	    ResizeCalculator = __webpack_require__(2);
+	     var $ = __webpack_require__(3);
+	     module.exports = function pagesControler(template, pCounter) {
+	         var pages = document.querySelectorAll('.page'),
+	             footer = document.querySelector('.footer'),
+	             page;
+	         if (pages.length < pCounter) {
+	             while (pages.length < pCounter) {
+	                 $('.footer').append(template(pages.length));
+	                 pages = document.querySelectorAll('.page');
+	             }
+	         } else if (pages.length > pCounter) {
+	             while (pages.length > pCounter) {
+	                 page = document.querySelector('.page[data-number="' + (pages.length - 1) + '"]');
+	                 footer.removeChild(page);
+	                 pages = document.querySelectorAll('.page');
+	             }
+	         }
 	
-	module.exports = function load(query) {
-	    var XHR = XMLHttpRequest;
-	    var xhr = new XHR(),
-	        mainURL = 'https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=' + query + '&key=AIzaSyAIQ2HLw1YvSQL7Equ4WPJpJskfbaEN_dg',
-	        videos,
-	        calculator = new ResizeCalculator();
+	     }
+
+/***/ },
+/* 9 */
+/***/ function(module, exports) {
+
+	module.exports = function Swipe(callback) {
 	
-	    xhr.open('GET', mainURL, true);
-	    xhr.send();
-	
-	    xhr.onload = function () {
-	        var statURL;
-	        videos = JSON.parse(this.responseText)['items'];
-	        for (var i = 0; i < 15; i++) {
-	            statURL = 'https://www.googleapis.com/youtube/v3/videos?part=statistics&id=' + videos[i].id.videoId + '&key=AIzaSyAIQ2HLw1YvSQL7Equ4WPJpJskfbaEN_dg';
-	
-	            var video = {
-	                href: 'https://www.youtube.com/watch?v=' + videos[i].id.videoId,
-	                hrefTag: videos[i].snippet.title,
-	                imgSrc: videos[i].snippet.thumbnails.medium.url,
-	                person: videos[i].snippet.channelTitle,
-	                date: videos[i].snippet.publishedAt.substring(0, 10),
-	                views: 0,
-	                text: videos[i].snippet.description
-	            };
-	
-	            var statisticXHR = new XHR();
-	            statisticXHR.open('GET', statURL, true)
-	            statisticXHR.send();
-	
-	            (function (video) {
-	                statisticXHR.onload = function () {
-	                    var statistic = JSON.parse(this.responseText)['items'];
-	                    video.views = statistic[0].statistics.viewCount;
-	                    $('.videos').append(Video(video));
-	                    calculator.calculate();
-	                }
-	            }(video));
+	    function activatePadge(number) {
+	        var videos = document.querySelector('.videos'),
+	            pages = document.querySelectorAll('.page');
+	        for (var i = 0; i < pages.length; i++) {
+	            if (i == number) {
+	                pages[i].classList.add('active');
+	            } else {
+	                pages[i].classList.remove('active');
+	            }
 	
 	        }
-	
-	    }
-	    xhr.onerror = function () {
-	        console.log('Status ' + this.status);
 	    }
 	
+	    function clickHandler(event) {
+	        var active = document.querySelector('.active'),
+	            pageNumber;
+	        if (active === null) {
+	            pageNumber = 0;
+	        } else {
+	            pageNumber = active.dataset.number;
+	        }
+	        var videos = document.querySelector('.videos'),
+	            trans = document.body.clientWidth * pageNumber,
+	            shiftX;
+	        if (event.changedTouches === undefined) {
+	            shiftX = event.pageX;
+	        } else {
+	            shiftX = event.changedTouches[0].pageX;
+	        }
+	
+	        videos.style.transition = "transform 0s"
+	
+	        function clickMoveAt(event) {
+	            var pageX;
+	            if (event.changedTouches === undefined) {
+	                pageX = event.pageX;
+	            } else {
+	                pageX = event.changedTouches[0].pageX;
+	            }
+	            videos.style.transform = "translate3D(" + (-trans + pageX - shiftX) + "px, 0px, 0px)";
+	        }
+	
+	        document.addEventListener('mousemove', clickMoveAt);
+	        document.addEventListener('touchmove', clickMoveAt);
+	
+	        function endHandler(event) {
+	            var active = document.querySelector('.active'),
+	                pageNumber;
+	            if (active === null) {
+	                pageNumber = 0;
+	            } else {
+	                pageNumber = active.dataset.number;
+	            }
+	            var videos = document.querySelector('.videos'),
+	                pages = document.querySelectorAll('.page'),
+	                pageX;
+	            if (event.changedTouches === undefined) {
+	                pageX = event.pageX;
+	            } else {
+	                pageX = event.changedTouches[0].pageX;
+	            }
+	            document.removeEventListener('mousemove', clickMoveAt);
+	            document.removeEventListener('touchmove', clickMoveAt);
+	            videos.style.transition = "transform 0.5s";
+	            if (pageX < shiftX && pageNumber != (pages.length - 2)) {
+	                pageNumber++;
+	            } else
+	            if (pageX > shiftX && pageNumber != '0') {
+	                pageNumber--;
+	
+	            } else {
+	                if (parseInt(pageNumber) === pages.length - 2) {
+	                    callback.call(this, '');
+	                    pageNumber++;
+	                }
+	
+	            }
+	            activatePadge(pageNumber);
+	            trans = document.body.clientWidth * pageNumber;
+	            videos.style.transform = "translate3D(-" + trans + "px, 0px, 0px)";
+	
+	            document.removeEventListener('mouseup', endHandler);
+	            document.removeEventListener('touchend', endHandler);
+	        }
+	
+	        document.addEventListener('mouseup', endHandler);
+	        document.addEventListener('touchend', endHandler);
+	
+	    }
+	
+	    function swipe(number) {
+	        var videos = document.querySelector('.videos');
+	        activatePadge(number);
+	        videos.style.transition = "transform 0.8s";
+	        trans = document.body.clientWidth * number;
+	        videos.style.transform = "translate3D(-" + trans + "px, 0px, 0px)";
+	    }
+	
+	    return {
+	        set: function () {
+	            var active = document.querySelector('.active'),
+	                pageNumber;
+	            if (active === null) {
+	                pageNumber = 0;
+	            } else {
+	                pageNumber = active.dataset.number;
+	            }
+	            var videos = document.querySelector('.videos');
+	            activatePadge(pageNumber);
+	            videos.addEventListener("mousedown", clickHandler, false);
+	            videos.addEventListener("touchstart", clickHandler, false);
+	            document.querySelector('.footer').addEventListener('click', function (event) {
+	                var pages = document.querySelectorAll('.page');
+	                number = event.target.dataset.number;
+	                if (number != undefined) {
+	                    swipe(number);
+	                    if (parseInt(number) === (pages.length - 1) || parseInt(number) === (pages.length - 2)) {
+	                        callback.call(this, '');
+	                    }
+	                }
+	            });
+	            window.addEventListener('resize', function () {
+	                var active = document.querySelector('.active'),
+	                    pageNumber;
+	                if (active === null) {
+	                    pageNumber = 0;
+	                } else {
+	                    pageNumber = active.dataset.number;
+	                }
+	                var pages = document.querySelectorAll('.page'),
+	                    videos = document.querySelector('.videos');
+	                trans = document.body.clientWidth * pageNumber;
+	                videos.style.transition = "transform 0.0s";
+	                videos.style.transform = "translate3D(-" + trans + "px, 0px, 0px)";
+	                if (active === null) {
+	                    swipe(pages.length - 1);
+	                }
+	
+	            })
+	        },
+	        swipe: swipe
+	    };
 	}
 
 /***/ }

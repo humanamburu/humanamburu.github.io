@@ -1,5 +1,6 @@
 var Page = require('../Views/Page'),
-    pagesController = require('./PageController');
+    pagesController = require('./PageController'),
+    Swipe = require('../Controller/Swipe');
 
 function isInteger(num) {
     return (num ^ 0) === num;
@@ -8,7 +9,8 @@ function isInteger(num) {
 
 module.exports = function ResizeCalculator() {
 
-    var pCounter = 0;
+    var pCounter = 0,
+        swipe = new Swipe();
 
     function pagesCalculate(pCount, length) {
         number = length / pCount;
@@ -19,13 +21,19 @@ module.exports = function ResizeCalculator() {
         }
     }
 
-    function calculate() {
-        debugger;
+    function calculate(i) {
         var video = document.querySelectorAll('.video'),
             length = video.length,
             videos = document.querySelector('.videos'),
             pages = document.querySelectorAll('.page'),
             page = new Page();
+        var active = document.querySelector('.active'),
+            pageNumber;
+        if (active === null) {
+            pageNumber = 0;
+        } else {
+            pageNumber = active.dataset.number;
+        }
 
 
         if (document.body.clientWidth < 700) {
@@ -47,6 +55,10 @@ module.exports = function ResizeCalculator() {
 
         }
         pagesController(page.pageTemplate, pCounter);
+        if (pages.length === 1) {
+            pages[0].classList.add('active');
+            swipe.swipe(0);
+        }
     }
 
 
