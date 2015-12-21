@@ -49,8 +49,8 @@ function Swipe(callback) {
 
 Swipe.prototype.activatePage = function (number) {
     var pages = document.querySelectorAll('.page'),
-        left = number - 2,
-        right = number + 2;
+        left = number - 3,
+        right = number + 1;
     for (var i = 0; i < pages.length; i++) {
         if(i>=left && i<=right) {
             pages[i].style.display = 'inline-block';

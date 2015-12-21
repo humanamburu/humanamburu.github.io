@@ -208,10 +208,12 @@ var main =
 	
 	                (function (video, i) {
 	                    statisticXHR.onload = function () {
-	                        var statistic = JSON.parse(this.responseText)['items'],
-	                            videoView = new Video(video);
+	                        var statistic = JSON.parse(this.responseText)['items'];
 	                        video.views = statistic[0].statistics.viewCount;
+	
+	                        var videoView = new Video(video);
 	                        videoView.add();
+	
 	                        calculator.calculate(i);
 	                    }
 	                }(video, i));
@@ -415,8 +417,8 @@ var main =
 	
 	Swipe.prototype.activatePage = function (number) {
 	    var pages = document.querySelectorAll('.page'),
-	        left = number - 2,
-	        right = number + 2;
+	        left = number - 3,
+	        right = number + 1;
 	    for (var i = 0; i < pages.length; i++) {
 	        if(i>=left && i<=right) {
 	            pages[i].style.display = 'inline-block';

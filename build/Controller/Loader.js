@@ -42,10 +42,12 @@ function Loader() {
 
                 (function (video, i) {
                     statisticXHR.onload = function () {
-                        var statistic = JSON.parse(this.responseText)['items'],
-                            videoView = new Video(video);
+                        var statistic = JSON.parse(this.responseText)['items'];
                         video.views = statistic[0].statistics.viewCount;
+
+                        var videoView = new Video(video);
                         videoView.add();
+
                         calculator.calculate(i);
                     }
                 }(video, i));
