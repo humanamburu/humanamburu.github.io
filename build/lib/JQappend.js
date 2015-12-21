@@ -8,7 +8,6 @@ function JQ(selector) {
 };
 
 JQ.prototype.elements = [];
-JQ.prototype.selector;
 
 JQ.prototype.set = function (selector) {
     if (typeof selector === 'string') {

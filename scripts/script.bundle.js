@@ -46,57 +46,42 @@ var main =
 /***/ function(module, exports, __webpack_require__) {
 
 	var Layout = __webpack_require__(1),
-	    Search = __webpack_require__(2),
-	    $ = __webpack_require__(3),
+	    Search = __webpack_require__(3),
 	    Loader = __webpack_require__(4),
-	    Swipe = __webpack_require__(9);
+	    Swipe = __webpack_require__(9),
+	    ResizeCalculator = __webpack_require__(6);
 	
 	var loader = new Loader(),
-	    swipe = new Swipe(loader.loadVideos);
+	    layout = new Layout(),
+	    resizer = new ResizeCalculator();
 	
-	$('body').append(Layout());
-	swipe.set();
-	var search = new Search(loader.loadVideos);
+	layout.createLayout();
+	resizer.listen();
+	
+	var swipe = new Swipe(loader.loadVideos),
+	    search = new Search(loader.loadVideos);
 
 /***/ },
 /* 1 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	module.exports = function Layout() {
-	    var header = '<header class="header"><div class="header-search"><img class="search-icon" src="styles/search.png" alt="search"><input class="search" type="search"></div></header>',
-	        main = '<main class="main"><ul class="videos"></ul></main>',
-	        footer = '<footer class="footer"></footer>';
-	    return header + main + footer;
+	var $ = __webpack_require__(2);
+	
+	function Layout() {
+	    this.header = '<header class="header"><div class="header-search"><img class="search-icon" src="styles/search.png" alt="search"><input class="search" type="search"></div></header>';
+	    this.main = '<main class="main"><ul class="videos"></ul></main>';
+	    this.footer = '<footer class="footer"></footer>';
 	}
+	
+	Layout.prototype.createLayout = function() {
+	    var layout = this.header + this.main + this.footer;
+	    $('body').append(layout);
+	};
+	
+	module.exports = Layout;
 
 /***/ },
 /* 2 */
-/***/ function(module, exports) {
-
-	module.exports = function Search(callback) {
-	    var search = document.querySelector('.search');
-	    search.addEventListener('keyup',
-	        function (event) {
-	            if (event.keyCode === 13) {
-	                clearLayout();
-	                callback.call(this, search.value);
-	            }
-	        });
-	    document.querySelector('.search-icon').addEventListener('click', function (event) {
-	        clearLayout();
-	        callback.call(this, event, search.value);
-	    });
-	}
-	
-	function clearLayout(argument) {
-	    var main = document.querySelector('.videos'),
-	        footer = document.querySelector('.footer');
-	    main.innerHTML = "";
-	    footer.innerHTML = "";
-	}
-
-/***/ },
-/* 3 */
 /***/ function(module, exports) {
 
 	function JQ(selector) {
@@ -109,7 +94,6 @@ var main =
 	};
 	
 	JQ.prototype.elements = [];
-	JQ.prototype.selector;
 	
 	JQ.prototype.set = function (selector) {
 	    if (typeof selector === 'string') {
@@ -149,31 +133,69 @@ var main =
 	module.exports = JQ;
 
 /***/ },
+/* 3 */
+/***/ function(module, exports) {
+
+	function Search(callback) {
+	    var search = document.querySelector('.search');
+	    search.addEventListener('keyup',
+	        function (event) {
+	            if (event.keyCode === 13) {
+	                clearLayout();
+	                callback.call(this, search.value);
+	            }
+	        });
+	    document.querySelector('.search-icon').addEventListener('click', function (event) {
+	        clearLayout();
+	        callback.call(this, event, search.value);
+	    });
+	}
+	
+	function clearLayout() {
+	    var main = document.querySelector('.videos'),
+	        footer = document.querySelector('.footer');
+	    main.innerHTML = "";
+	    footer.innerHTML = "";
+	}
+	
+	module.exports = Search;
+
+/***/ },
 /* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $ = __webpack_require__(3),
-	    Video = __webpack_require__(5),
+	var Video = __webpack_require__(5),
 	    ResizeCalculator = __webpack_require__(6);
 	
-	module.exports = function Loader() {
+	function Loader() {
 	    var XHR = XMLHttpRequest,
-	        resizer = new ResizeCalculator();
+	        nextpage = '',
+	        saveQ = '',
+	        calculator = new ResizeCalculator();
 	
 	    function loadVideos(query) {
+	        if (query === '') {
+	            query = saveQ;
+	        } else {
+	            saveQ = query;
+	        }
 	        var xhr = new XHR(),
-	            mainURL = 'https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=' + query + '&key=AIzaSyAIQ2HLw1YvSQL7Equ4WPJpJskfbaEN_dg',
-	            videos,
-	            calculator = new ResizeCalculator();
+	            mainURL = 'https://www.googleapis.com/youtube/v3/search?pageToken=' + nextpage + '&part=snippet&maxResults=15&q=' + query + '&key=AIzaSyAIQ2HLw1YvSQL7Equ4WPJpJskfbaEN_dg',
+	            videos;
 	
 	        xhr.open('GET', mainURL, true);
 	        xhr.send();
 	
 	        xhr.onload = function () {
-	            var statURL;
+	            nextpage = JSON.parse(this.responseText).nextPageToken;
 	            videos = JSON.parse(this.responseText)['items'];
+	
 	            videos.forEach(function (element, i) {
-	                statURL = 'https://www.googleapis.com/youtube/v3/videos?part=statistics&id=' + element.id.videoId + '&key=AIzaSyAIQ2HLw1YvSQL7Equ4WPJpJskfbaEN_dg';
+	                var statURL = 'https://www.googleapis.com/youtube/v3/videos?part=statistics&id=' + element.id.videoId + '&key=AIzaSyAIQ2HLw1YvSQL7Equ4WPJpJskfbaEN_dg';
+	                var statisticXHR = new XHR();
+	                statisticXHR.open('GET', statURL, true);
+	                statisticXHR.send();
+	
 	                var video = {
 	                    href: 'https://www.youtube.com/watch?v=' + element.id.videoId,
 	                    hrefTag: element.snippet.title,
@@ -184,189 +206,267 @@ var main =
 	                    text: element.snippet.description
 	                };
 	
-	                var statisticXHR = new XHR();
-	                statisticXHR.open('GET', statURL, true)
-	                statisticXHR.send();
-	
 	                (function (video, i) {
 	                    statisticXHR.onload = function () {
-	                        var statistic = JSON.parse(this.responseText)['items'];
+	                        var statistic = JSON.parse(this.responseText)['items'],
+	                            videoView = new Video(video);
 	                        video.views = statistic[0].statistics.viewCount;
-	                        $('.videos').append(Video(video));
+	                        videoView.add();
 	                        calculator.calculate(i);
 	                    }
 	                }(video, i));
 	            });
 	
-	        }
+	        };
 	
 	        xhr.onerror = function () {
-	            console.log('Status ' + this.status);
-	        }
-	        resizer.set();
+	            console.log('Status ' + this.staus);
+	        };
 	    }
 	
 	    return {
 	        loadVideos: loadVideos
 	    };
 	
-	
 	}
+	
+	module.exports = Loader;
 
 /***/ },
 /* 5 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	module.exports = function Video(obj) {
-	    var startTag = '<li class="video">',
-	        link = '<a href="' + obj.href + '" class="name">' + obj.hrefTag + '</a>',
-	        preview = '<div class="video-preview"><img src="' + obj.imgSrc + '" alt="videoPreview" ondrag="return false" ondragdrop="return false" ondragstart="return false"></div>',
-	        videoStatistic = '<div class="video-statistic"><ul class="video-statistic-list"><li><div class="person-icon">' + obj.person + '</div></li><li><div class="date"> ' + obj.date + '</div></li><li><div class="views">' + obj.views + '</div></li></ul></div>',
-	        mobileVideoStatistic = '<div class="mobile-video-statistic"><ul class="mobile-video-statistic-list"><li>' + obj.person + '</li><li>' + obj.date + '</li><li>' + obj.views + '</li></ul></div>',
-	        description = '<div class="video-description">' + obj.text + '</div>',
-	        endTag = '</li>';
+	var $ = __webpack_require__(2);
 	
-	    return startTag + link + preview + videoStatistic + mobileVideoStatistic + description + endTag;
-	
+	function Video(obj) {
+	    this.startTag = '<li class="video fade-in">';
+	    this.link = '<a href="' + obj.href + '" class="name">' + obj.hrefTag + '</a>';
+	    this.preview = '<div class="video-preview"><img src="' + obj.imgSrc + '" alt="videoPreview" ondrag="return false" ondragdrop="return false" ondragstart="return false"></div>';
+	    this.videoStatistic = '<div class="video-statistic"><ul class="video-statistic-list"><li><div class="person-icon">' + obj.person + '</div></li><li><div class="date"> ' + obj.date + '</div></li><li><div class="views">' + obj.views + '</div></li></ul></div>';
+	    this.mobileVideoStatistic = '<div class="mobile-video-statistic"><ul class="mobile-video-statistic-list"><li>' + obj.person + '</li><li>' + obj.date + '</li><li>' + obj.views + '</li></ul></div>';
+	    this.description = '<div class="video-description">' + obj.text + '</div>';
+	    this.endTag = '</li>';
 	}
+	
+	Video.prototype.add = function () {
+	    var template = this.startTag + this.link + this.preview + this.videoStatistic + this.mobileVideoStatistic + this.description + this.endTag;
+	    $('.videos').append(template);
+	    setTimeout(function () {
+	        document.querySelector('.fade-in').classList.remove('fade-in');
+	    }, 1000);
+	};
+	
+	module.exports = Video;
 
 /***/ },
 /* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Page = __webpack_require__(7),
-	    pagesController = __webpack_require__(8),
+	var pagesController = __webpack_require__(7),
 	    Swipe = __webpack_require__(9);
 	
 	function isInteger(num) {
 	    return (num ^ 0) === num;
 	}
 	
-	
-	module.exports = function ResizeCalculator() {
-	
-	    var pCounter = 0,
-	        swipe = new Swipe();
-	
-	    function pagesCalculate(pCount, length) {
-	        number = length / pCount;
-	        if (isInteger(number)) {
-	            return number;
-	        } else {
-	            return parseInt(number.toFixed(0));
-	        }
+	function pagesCalculate(pCount, length) {
+	    var number = length / pCount;
+	    if (isInteger(number)) {
+	        return number;
+	    } else {
+	        return parseInt(number.toFixed(0));
 	    }
-	
-	    function calculate(i) {
-	        var video = document.querySelectorAll('.video'),
-	            length = video.length,
-	            videos = document.querySelector('.videos'),
-	            pages = document.querySelectorAll('.page'),
-	            page = new Page();
-	        var active = document.querySelector('.active'),
-	            pageNumber;
-	        if (active === null) {
-	            pageNumber = 0;
-	        } else {
-	            pageNumber = active.dataset.number;
-	        }
-	
-	
-	        if (document.body.clientWidth < 700) {
-	            videos.style.width = 'calc(100vw * ' + length + ')';
-	            pCounter = pagesCalculate(1, length);
-	        } else
-	        if (document.body.clientWidth < 1050) {
-	            videos.style.width = 'calc(50vw *' + length + ')';
-	            pCounter = pagesCalculate(2, length);
-	        } else
-	
-	        if (document.body.clientWidth < 1400) {
-	            videos.style.width = 'calc(33.3vw *' + length + ')';
-	            pCounter = pagesCalculate(3, length);
-	        } else
-	        if (document.body.clientWidth > 1500) {
-	            videos.style.width = 'calc(25vw *' + length + ')';
-	            pCounter = pagesCalculate(4, length);
-	
-	        }
-	        pagesController(page.pageTemplate, pCounter);
-	        if (pages.length === 1) {
-	            pages[0].classList.add('active');
-	            swipe.swipe(0);
-	        }
-	    }
-	
-	
-	
-	    return {
-	        set: function () {
-	            window.addEventListener('resize', calculate);
-	        },
-	        calculate: calculate
-	    };
 	}
+	
+	function ResizeCalculator() {
+	    this.pCounter = 0;
+	}
+	
+	ResizeCalculator.prototype.calculate = function(i) {
+	    var swipe = new Swipe();
+	    var video = document.querySelectorAll('.video'),
+	        length = video.length,
+	        pages = document.querySelectorAll('.page'),
+	        videos =  document.querySelector('.videos');
+	
+	    if (document.body.clientWidth < 700) {
+	        videos.style.width = 'calc(100vw * ' + length + ')';
+	        this.pCounter = pagesCalculate(1, length);
+	    } else
+	    if (document.body.clientWidth < 1050) {
+	        videos.style.width = 'calc(50vw *' + length + ')';
+	        this.pCounter = pagesCalculate(2, length);
+	    } else
+	
+	    if (document.body.clientWidth < 1400) {
+	        videos.style.width = 'calc(33.3vw *' + length + ')';
+	        this.pCounter = pagesCalculate(3, length);
+	    } else
+	    if (document.body.clientWidth > 1500) {
+	        videos.style.width = 'calc(25vw *' + length + ')';
+	        this.pCounter = pagesCalculate(4, length);
+	
+	    }
+	
+	    pagesController(this.pCounter);
+	
+	    if (pages.length === 1) {
+	        pages[0].classList.add('active');
+	        swipe.swipe(0);
+	    }
+	};
+	
+	ResizeCalculator.prototype.listen = function () {
+	    window.addEventListener('resize', this.calculate);
+	};
+	
+	module.exports = ResizeCalculator;
 
 /***/ },
 /* 7 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	module.exports = function Page() {
+	var $ = __webpack_require__(2),
+	    Page = __webpack_require__(8);
 	
-	    function createPage(number) {
-	        var template = '<a href="#" class="page" data-number="' + number + '">' + (number + 1) + '</a>';
-	        return template;
+	function PageController(pCounter) {
+	    var pages = document.querySelectorAll('.page'),
+	        footer = document.querySelector('.footer'),
+	        page;
+	    if (pages.length < pCounter) {
+	        while (pages.length < pCounter) {
+	            var p = new Page(pages.length);
+	            $('.footer').append(p.template);
+	            pages = document.querySelectorAll('.page');
+	        }
+	    } else if (pages.length > pCounter) {
+	        while (pages.length > pCounter) {
+	            page = document.querySelector('.page[data-number="' + (pages.length - 1) + '"]');
+	            footer.removeChild(page);
+	            pages = document.querySelectorAll('.page');
+	        }
 	    }
 	
-	    return {
-	        pageTemplate: createPage
-	    };
 	}
+	module.exports = PageController;
 
 /***/ },
 /* 8 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	     var $ = __webpack_require__(3);
-	     module.exports = function pagesControler(template, pCounter) {
-	         var pages = document.querySelectorAll('.page'),
-	             footer = document.querySelector('.footer'),
-	             page;
-	         if (pages.length < pCounter) {
-	             while (pages.length < pCounter) {
-	                 $('.footer').append(template(pages.length));
-	                 pages = document.querySelectorAll('.page');
-	             }
-	         } else if (pages.length > pCounter) {
-	             while (pages.length > pCounter) {
-	                 page = document.querySelector('.page[data-number="' + (pages.length - 1) + '"]');
-	                 footer.removeChild(page);
-	                 pages = document.querySelectorAll('.page');
-	             }
-	         }
+	function Page(number) {
+	    this.template = '<a href="#" class="page" style="display: none;" data-number="' + number + '">' + (number + 1) + '</a>';
+	}
 	
-	     }
+	module.exports = Page;
 
 /***/ },
 /* 9 */
 /***/ function(module, exports) {
 
-	module.exports = function Swipe(callback) {
+	function Swipe(callback) {
+	    this.callback = callback;
+	    this.videos = document.querySelector('.videos');
+	    if (callback != undefined) {
+	        var active = document.querySelector('.active'),
+	            pageNumber;
+	        if (active === null) {
+	            pageNumber = 0;
+	        } else {
+	            pageNumber = active.dataset.number;
+	        }
 	
-	    function activatePadge(number) {
-	        var videos = document.querySelector('.videos'),
-	            pages = document.querySelectorAll('.page');
-	        for (var i = 0; i < pages.length; i++) {
-	            if (i == number) {
-	                pages[i].classList.add('active');
+	        this.activatePage(pageNumber);
+	        this.videos.addEventListener("mousedown", this.clickHandler.bind(this), false);
+	        this.videos.addEventListener("touchstart", this.clickHandler.bind(this), false);
+	
+	        document.querySelector('.footer').addEventListener('click', function (event) {
+	            var pages = document.querySelectorAll('.page');
+	            var number = event.target.dataset.number;
+	            if (number != undefined) {
+	                this.swipe(number);
+	                if (parseInt(number) === (pages.length - 1) || parseInt(number) === (pages.length - 2)) {
+	                    this.callback.call(this, '');
+	                }
+	            }
+	        }.bind(this));
+	
+	        window.addEventListener('resize', function () {
+	            var active = document.querySelector('.active'),
+	                pageNumber;
+	            if (active === null) {
+	                pageNumber = 0;
 	            } else {
-	                pages[i].classList.remove('active');
+	                pageNumber = active.dataset.number;
+	            }
+	            var pages = document.querySelectorAll('.page'),
+	                videos = document.querySelector('.videos'),
+	                trans = document.body.clientWidth * pageNumber;
+	            videos.style.transition = "transform 0.0s";
+	            videos.style.transform = "translate3D(-" + trans + "px, 0px, 0px)";
+	            if (active === null) {
+	                this.swipe(pages.length - 1);
 	            }
 	
-	        }
+	        }.bind(this));
 	    }
 	
-	    function clickHandler(event) {
+	}
+	
+	Swipe.prototype.activatePage = function (number) {
+	    var pages = document.querySelectorAll('.page'),
+	        left = number - 2,
+	        right = number + 2;
+	    for (var i = 0; i < pages.length; i++) {
+	        if(i>=left && i<=right) {
+	            pages[i].style.display = 'inline-block';
+	        } else {
+	            pages[i].style.display = 'none';
+	        }
+	        if (i == number) {
+	            pages[i].classList.add('active');
+	        } else {
+	            pages[i].classList.remove('active');
+	        }
+	
+	    }
+	};
+	
+	Swipe.prototype.clickHandler = function (event) {
+	    var active = document.querySelector('.active'),
+	        pageNumber;
+	    if (active === null) {
+	        pageNumber = 0;
+	    } else {
+	        pageNumber = active.dataset.number;
+	    }
+	    var videos = document.querySelector('.videos'),
+	        trans = document.body.clientWidth * pageNumber,
+	        shiftX;
+	    if (event.changedTouches === undefined) {
+	        shiftX = event.pageX;
+	    } else {
+	        shiftX = event.changedTouches[0].pageX;
+	    }
+	    videos.style.transition = "transform 0s"
+	
+	    function clickMoveAt(event) {
+	        var pageX;
+	        if (event.changedTouches === undefined) {
+	            pageX = event.pageX;
+	        } else {
+	            pageX = event.changedTouches[0].pageX;
+	        }
+	        videos.style.transform = "translate3D(" + (-trans + pageX - shiftX) + "px, 0px, 0px)";
+	    }
+	
+	    document.addEventListener('mousemove', clickMoveAt);
+	    document.addEventListener('touchmove', clickMoveAt);
+	
+	    var activatePage = this.activatePage,
+	        callback = this.callback;
+	
+	    function endHandler(event) {
 	        var active = document.querySelector('.active'),
 	            pageNumber;
 	        if (active === null) {
@@ -375,127 +475,51 @@ var main =
 	            pageNumber = active.dataset.number;
 	        }
 	        var videos = document.querySelector('.videos'),
-	            trans = document.body.clientWidth * pageNumber,
-	            shiftX;
+	            pages = document.querySelectorAll('.page'),
+	            pageX;
 	        if (event.changedTouches === undefined) {
-	            shiftX = event.pageX;
+	            pageX = event.pageX;
 	        } else {
-	            shiftX = event.changedTouches[0].pageX;
+	            pageX = event.changedTouches[0].pageX;
 	        }
+	        document.removeEventListener('mousemove', clickMoveAt);
+	        document.removeEventListener('touchmove', clickMoveAt);
+	        videos.style.transition = "transform 0.5s";
+	        if (pageX < shiftX && pageNumber != (pages.length - 3) && pageNumber != (pages.length - 1)) {
+	            pageNumber++;
+	        } else if (pageX > shiftX && pageNumber != '0') {
+	            pageNumber--;
 	
-	        videos.style.transition = "transform 0s"
-	
-	        function clickMoveAt(event) {
-	            var pageX;
-	            if (event.changedTouches === undefined) {
-	                pageX = event.pageX;
-	            } else {
-	                pageX = event.changedTouches[0].pageX;
-	            }
-	            videos.style.transform = "translate3D(" + (-trans + pageX - shiftX) + "px, 0px, 0px)";
-	        }
-	
-	        document.addEventListener('mousemove', clickMoveAt);
-	        document.addEventListener('touchmove', clickMoveAt);
-	
-	        function endHandler(event) {
-	            var active = document.querySelector('.active'),
-	                pageNumber;
-	            if (active === null) {
-	                pageNumber = 0;
-	            } else {
-	                pageNumber = active.dataset.number;
-	            }
-	            var videos = document.querySelector('.videos'),
-	                pages = document.querySelectorAll('.page'),
-	                pageX;
-	            if (event.changedTouches === undefined) {
-	                pageX = event.pageX;
-	            } else {
-	                pageX = event.changedTouches[0].pageX;
-	            }
-	            document.removeEventListener('mousemove', clickMoveAt);
-	            document.removeEventListener('touchmove', clickMoveAt);
-	            videos.style.transition = "transform 0.5s";
-	            if (pageX < shiftX && pageNumber != (pages.length - 2)) {
+	        } else {
+	            if (parseInt(pageNumber) === pages.length - 3) {
+	                callback.call(this, '');
 	                pageNumber++;
-	            } else
-	            if (pageX > shiftX && pageNumber != '0') {
-	                pageNumber--;
-	
-	            } else {
-	                if (parseInt(pageNumber) === pages.length - 2) {
-	                    callback.call(this, '');
-	                    pageNumber++;
-	                }
-	
 	            }
-	            activatePadge(pageNumber);
-	            trans = document.body.clientWidth * pageNumber;
-	            videos.style.transform = "translate3D(-" + trans + "px, 0px, 0px)";
 	
-	            document.removeEventListener('mouseup', endHandler);
-	            document.removeEventListener('touchend', endHandler);
 	        }
-	
-	        document.addEventListener('mouseup', endHandler);
-	        document.addEventListener('touchend', endHandler);
-	
-	    }
-	
-	    function swipe(number) {
-	        var videos = document.querySelector('.videos');
-	        activatePadge(number);
-	        videos.style.transition = "transform 0.8s";
-	        trans = document.body.clientWidth * number;
+	        activatePage(pageNumber);
+	        trans = document.body.clientWidth * pageNumber;
 	        videos.style.transform = "translate3D(-" + trans + "px, 0px, 0px)";
+	
+	        document.removeEventListener('mouseup', endHandler);
+	        document.removeEventListener('touchend', endHandler);
 	    }
 	
-	    return {
-	        set: function () {
-	            var active = document.querySelector('.active'),
-	                pageNumber;
-	            if (active === null) {
-	                pageNumber = 0;
-	            } else {
-	                pageNumber = active.dataset.number;
-	            }
-	            var videos = document.querySelector('.videos');
-	            activatePadge(pageNumber);
-	            videos.addEventListener("mousedown", clickHandler, false);
-	            videos.addEventListener("touchstart", clickHandler, false);
-	            document.querySelector('.footer').addEventListener('click', function (event) {
-	                var pages = document.querySelectorAll('.page');
-	                number = event.target.dataset.number;
-	                if (number != undefined) {
-	                    swipe(number);
-	                    if (parseInt(number) === (pages.length - 1) || parseInt(number) === (pages.length - 2)) {
-	                        callback.call(this, '');
-	                    }
-	                }
-	            });
-	            window.addEventListener('resize', function () {
-	                var active = document.querySelector('.active'),
-	                    pageNumber;
-	                if (active === null) {
-	                    pageNumber = 0;
-	                } else {
-	                    pageNumber = active.dataset.number;
-	                }
-	                var pages = document.querySelectorAll('.page'),
-	                    videos = document.querySelector('.videos');
-	                trans = document.body.clientWidth * pageNumber;
-	                videos.style.transition = "transform 0.0s";
-	                videos.style.transform = "translate3D(-" + trans + "px, 0px, 0px)";
-	                if (active === null) {
-	                    swipe(pages.length - 1);
-	                }
+	    document.addEventListener('mouseup', endHandler);
+	    document.addEventListener('touchend', endHandler);
 	
-	            })
-	        },
-	        swipe: swipe
-	    };
-	}
+	};
+	
+	Swipe.prototype.swipe = function (number) {
+	    var videos = document.querySelector('.videos'),
+	        trans = 0;
+	    this.activatePage(number);
+	    videos.style.transition = "transform 0.8s";
+	    trans = document.body.clientWidth * number;
+	    videos.style.transform = "translate3D(-" + trans + "px, 0px, 0px)";
+	};
+	
+	module.exports = Swipe;
 
 /***/ }
 /******/ ]);

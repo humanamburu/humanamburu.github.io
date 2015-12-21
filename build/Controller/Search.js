@@ -1,4 +1,4 @@
-module.exports = function Search(callback) {
+function Search(callback) {
     var search = document.querySelector('.search');
     search.addEventListener('keyup',
         function (event) {
@@ -13,9 +13,11 @@ module.exports = function Search(callback) {
     });
 }
 
-function clearLayout(argument) {
+function clearLayout() {
     var main = document.querySelector('.videos'),
         footer = document.querySelector('.footer');
     main.innerHTML = "";
     footer.innerHTML = "";
 }
+
+module.exports = Search;

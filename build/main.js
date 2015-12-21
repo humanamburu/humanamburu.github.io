@@ -1,12 +1,15 @@
 var Layout = require('./Views/Layout'),
     Search = require('./Controller/Search'),
-    $ = require('./lib/JQappend'),
     Loader = require('./Controller/Loader'),
-    Swipe = require('./Controller/Swipe');
+    Swipe = require('./Controller/Swipe'),
+    ResizeCalculator = require('./Controller/ResizeCalculator');
 
 var loader = new Loader(),
-    swipe = new Swipe(loader.loadVideos);
+    layout = new Layout(),
+    resizer = new ResizeCalculator();
 
-$('body').append(Layout());
-swipe.set();
-var search = new Search(loader.loadVideos);
+layout.createLayout();
+resizer.listen();
+
+var swipe = new Swipe(loader.loadVideos),
+    search = new Search(loader.loadVideos);
