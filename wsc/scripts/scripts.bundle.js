@@ -29744,11 +29744,11 @@
 	            var titleStyle = {
 	                fontSize: 28,
 	                fontWeight: 'bold',
-	                lineHeight: '69px'
+	                lineHeight: '130px',
+	                height: 'inherit'
 	            };
 	
 	            return _react2.default.createElement(_AppBar2.default, {
-	                title: 'WebSocket Challenge',
 	                iconElementLeft: _react2.default.createElement(_logo2.default, null),
 	                style: style,
 	                titleStyle: titleStyle
@@ -33758,7 +33758,23 @@
 	    _createClass(Logo, [{
 	        key: 'render',
 	        value: function render() {
-	            return _react2.default.createElement('div', { className: 'wsc-logo' });
+	            return _react2.default.createElement(
+	                'div',
+	                { className: 'container ws' },
+	                _react2.default.createElement('div', { className: 'square top left' }),
+	                _react2.default.createElement('div', { className: 'square top right' }),
+	                _react2.default.createElement('div', { className: 'square bottom right' }),
+	                _react2.default.createElement('div', { className: 'square bottom left' }),
+	                _react2.default.createElement(
+	                    'svg',
+	                    { xmlns: 'http://www.w3.org/2000/svg', xmlnsXlink: 'http://www.w3.org/1999/xlink', width: '100%', height: '100%', viewBox: '0 0 256 193', version: '1.1', preserveAspectRatio: 'xMidYMid', className: 'img' },
+	                    _react2.default.createElement(
+	                        'g',
+	                        null,
+	                        _react2.default.createElement('path', { d: 'M192.440223,144.644612 L224.220111,144.644612 L224.220111,68.3393384 L188.415329,32.5345562 L165.943007,55.0068785 L192.440223,81.5040943 L192.440223,144.644612 L192.440223,144.644612 Z M224.303963,160.576482 L178.017688,160.576482 L113.451687,160.576482 L86.954471,134.079266 L98.1906322,122.843105 L120.075991,144.728464 L165.104487,144.728464 L120.746806,100.286931 L132.06682,88.9669178 L176.4245,133.324599 L176.4245,88.2961022 L154.622994,66.4945955 L165.775303,55.3422863 L110.684573,0 L56.3485097,0 L56.3485097,0 L0,0 L31.6960367,31.6960367 L31.6960367,31.7798886 L31.8637406,31.7798886 L97.4359646,31.7798886 L120.662954,55.0068785 L86.7029152,88.9669178 L63.4759253,65.7399279 L63.4759253,47.7117589 L31.6960367,47.7117589 L31.6960367,78.9046839 L86.7029152,133.911562 L64.3144448,156.300033 L100.119227,192.104815 L154.45529,192.104815 L256,192.104815 L256,192.104815 L224.303963,160.576482 L224.303963,160.576482 Z', fill: '#fff842' })
+	                    )
+	                )
+	            );
 	        }
 	    }]);
 	
@@ -33802,7 +33818,7 @@
 	
 	
 	// module
-	exports.push([module.id, ".wsc-logo {\n  width: 50px;\n  height: 50px;\n  background: url(" + __webpack_require__(383) + ");\n  background-position: center;\n  background-repeat: no-repeat;\n}\n", ""]);
+	exports.push([module.id, ".wsc-logo {\n  width: 50px;\n  height: 50px;\n  background: url(" + __webpack_require__(383) + ");\n  background-position: center;\n  background-repeat: no-repeat;\n}\n.container {\n  background: #1f2739;\n  width: 80px;\n  height: 80px;\n  position: relative;\n  margin: 5px;\n}\n.square {\n  position: absolute;\n  background: #ddd873;\n  width: 16%;\n  height: 16%;\n}\n.square.top {\n  top: 15%;\n}\n.square.bottom {\n  bottom: 15%;\n}\n.square.left {\n  left: 15%;\n}\n.square.right {\n  right: 15%;\n}\n.container.ws .img {\n  width: 70%;\n  height: 70%;\n  top: 15%;\n  left: 15%;\n  position: relative;\n  -webkit-animation: ws-img 5s infinite;\n}\n.container.ws .square {\n  -webkit-animation: ws 5s infinite;\n}\n@-webkit-keyframes ws {\n  0% {\n    transform: scale(1.2);\n  }\n  5% {\n    transform: scale(1.4);\n  }\n  8% {\n    transform: scale(1.2);\n  }\n  20% {\n    transform: scale(1.2);\n  }\n  30% {\n    transform: scale(0);\n  }\n  70% {\n    transform: scale(0);\n  }\n  72% {\n    transform: scale(1.4);\n  }\n  75% {\n    transform: scale(1);\n  }\n  100% {\n    transform: scale(1);\n  }\n}\n@-webkit-keyframes ws-img {\n  0% {\n    transform: scale(0);\n  }\n  30% {\n    transform: scale(0);\n  }\n  32% {\n    transform: scale(1.1);\n  }\n  34% {\n    transform: scale(1);\n  }\n  70% {\n    transform: scale(1);\n  }\n  72% {\n    transform: scale(0);\n  }\n  100% {\n    transform: scale(0);\n  }\n}\n", ""]);
 	
 	// exports
 
@@ -34332,10 +34348,10 @@
 	                fontSize: 35
 	            };
 	
-	            var playersMap = players.map(function (player, position) {
+	            var playersMap = players.valueSeq().map(function (player, idx) {
 	                return _react2.default.createElement(_player2.default, {
 	                    key: player.get('id'),
-	                    position: index === _constants2.default.LAST_RACE ? position : null,
+	                    position: index === _constants2.default.LAST_RACE ? idx : null,
 	                    name: player.get('name')
 	                });
 	            });
@@ -41101,7 +41117,7 @@
 	    var _ret = function () {
 	        switch (action.type) {
 	            case 'RANDOM_PLZ':
-	                var number = Math.floor(Math.random() * state.get('list').size);
+	                var number = '' + Math.floor(Math.random() * state.get('list').size);
 	                var progress = state.getIn(['list', number, 'progress']);
 	                if (progress === 3) {
 	                    return {
@@ -41139,18 +41155,18 @@
 	var players = ['Eric Hoffman', 'Chelsea Otakan', 'James Anderson', 'Kerri Pangburn', 'Karie Averette', 'Dee Urbanek', 'Rolf Journey', 'Dewey Routh', 'Toshia Starr', 'Phil Rios', 'Jere Vosburg', 'Cherry Mcelroy', 'Shane Moises', 'Tempie Lytle', 'Nicolas Thornhill', 'Fatimah Maughan', 'Deonna Beaudin', 'Veronica Pinkston', 'Arthur Delima', 'Marquita Fargo', 'Milo Feucht', 'Joesph Trudel', 'Jammie Haines', 'Dianne Hebron', 'Gerda Ardis', 'Nana Kuehner', 'Windy Fiedler', 'Natividad Mccook', 'Madison Rennie', 'Vivian Olszewski', 'Asa Gebhardt', 'Jayne Mele', 'Conchita Custis', 'Argentina Karlin', 'Rozanne Cambre', 'Ngan Scroggs', 'Ellsworth Rundell', 'Kristin Huseman', 'Altha Hug', 'Shala Burkley', 'Keely Ishibashi', 'Mabelle Riney', 'Ardis Couvillion', 'Mimi Hartsoe', 'Raleigh Clausen', 'Yadira Eisner'];
 	
 	function generate() {
-	    return players.map(function (name, index) {
-	        var progress = Math.floor(Math.random() * 4);
-	        var id = Math.random() + name;
-	        var progressTime = Date.now() + index;
+	    var playersMap = {};
 	
-	        return {
-	            progressTime: progressTime,
-	            progress: progress,
-	            name: name,
-	            id: id
-	        };
-	    });
+	    for (var i = 0; i < players.length; i++) {
+	        var playerId = i;
+	
+	        playersMap[playerId] = {};
+	        playersMap[playerId].progress = Math.floor(Math.random() * 4);
+	        playersMap[playerId].name = players[i];
+	        playersMap[playerId].id = playerId;
+	        playersMap[playerId].progressTime = Date.now() + i;
+	    }
+	    return playersMap;
 	}
 
 /***/ },
