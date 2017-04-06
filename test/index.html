@@ -8,6 +8,22 @@
     html {
         background-color: black;
     }
+
+    .top-menu {
+        position: fixed;
+        width: 100%;
+        padding: 0 120px 0 220px;
+        left: 0;
+        box-sizing: border-box;
+        background: -webkit-linear-gradient(bottom,rgba(18,18,29,0),#12121d);
+        background: linear-gradient(0deg,rgba(18,18,29,0),#12121d);
+        top: 0;
+        -webkit-transition: all .3s;
+        transition: all .3s;
+        z-index: 1;
+        height: 90px;
+    }
+
     .overlay {
         width: 100px;
         height: 100px;
@@ -15,12 +31,16 @@
         background: linear-gradient(0deg,rgba(18,18,29,0),#12121d);
     }
 
+    .top-menu.menu-scrolled {
+         background: rgba(18,18,29,.96);
+    }
+
     .text {
         color: white;
     }
 </style>
 <body>
-    <div class="overlay"></div>
+    <div class="top-menu menu-scrolled"></div>
     <div class="text">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Animi asperiores consectetur enim iusto laborum molestiae ratione, repellendus? Aspernatur beatae ea expedita fugiat, magnam modi nihil provident quae sunt suscipit voluptate.</div>
 </body>
 </html>
